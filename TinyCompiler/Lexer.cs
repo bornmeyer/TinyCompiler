@@ -21,12 +21,7 @@
             this._tokenizer = tokenizer;
         }
 
-        // Methods
-
-        public Char NextChar()
-        {
-            return _sourceCode.NextChar();
-        }
+        // Methods       
 
         public IToken GetToken()
         {
