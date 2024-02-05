@@ -147,5 +147,44 @@ namespace TinyCompiler.Tests
 
             Assert.Equal(expected, tokens.Select(x => x.TokenType).ToList());
         }
+
+        [Fact]
+        public void TestThatYouCanTokenizeKeywords()
+        {
+            // Assign
+
+            var code = "IF+-123 foo*THEN/";
+            var sourceCode = new SourceCode(code);
+
+            var systemUnderTest = new Tokenizer();
+
+            var expected = new List<TokenType>
+            {
+                TokenType.IF,
+                TokenType.PLUS,
+                TokenType.MINUS,
+                TokenType.NUMBER,
+                TokenType.IDENT,
+                TokenType.ASTERISK,
+                TokenType.THEN,
+                TokenType.SLASH,
+                TokenType.NEWLINE,
+                TokenType.EOF
+            };
+
+            var tokens = new List<IToken>();
+
+            IToken? token = null;
+            
+            do
+            {
+                sourceCode.SkipWhitespace().SkipComment();
+                (token, _) = systemUnderTest.TokenFor(sourceCode.CurrentChar, sourceCode.Peek(), sourceCode);
+                sourceCode.NextChar();
+                tokens.Add(token);
+            } while (token.TokenType != TokenType.EOF);
+
+            Assert.Equal(expected, tokens.Select(x => x.TokenType).ToList());
+        }
     }
 }

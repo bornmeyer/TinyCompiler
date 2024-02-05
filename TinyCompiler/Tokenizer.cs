@@ -34,10 +34,20 @@ namespace TinyCompiler
                 ('!', _) => throw new ArgumentException(),
                 ('\"', _) => (TokenType.STRING, ReadString(sourceCode)),
                 (Char c, _) when Char.IsDigit(c) => (TokenType.NUMBER, ReadNumber(sourceCode)),
+                (Char c, _) when Char.IsLetter(c) => ReadKeyWord(sourceCode),
                 _ => throw new ArgumentException()
             }; 
            
             return (new Token(value, tokenType), sourceCode);
+        }
+
+        private (TokenType, String) ReadKeyWord(SourceCode sourceCode)
+        {
+            var startingPosition = sourceCode.CurrentPosition;
+            while (Char.IsLetter(sourceCode.Peek())) sourceCode.NextChar();
+            var tokenText = sourceCode.GetSlice(startingPosition, sourceCode.CurrentPosition + 1);            
+            var keyword = Token.CheckIfKeyword(tokenText);
+            return keyword != null ? (keyword.Value, tokenText) : (TokenType.IDENT, tokenText);
         }
 
         private String ReadString(SourceCode sourceCode)

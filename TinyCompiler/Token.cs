@@ -40,5 +40,17 @@ namespace TinyCompiler
         }
 
         public override string ToString() => $@"({_text}: {_tokenType})";
+
+        public static TokenType? CheckIfKeyword(String tokenText)
+        {
+            TokenType? result = null;
+            foreach(TokenType current in Enum.GetValues(typeof(TokenType)).Cast<TokenType>()) 
+            {
+                if(current.ToString() == tokenText && ((Int32)current) >= 100 && ((Int32)current) <= 200) 
+                    result = current;
+            }
+
+            return result;
+        }
     }
 }

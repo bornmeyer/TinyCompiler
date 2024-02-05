@@ -35,5 +35,5 @@ namespace TinyCompiler
         LTEQ = 209,
         GT = 210,
         GTEQ = 211
-    }
+    }    
 }
