@@ -18,6 +18,8 @@ namespace TinyCompiler
 
         public Char CurrentChar => _currentChar;
 
+        public Int32 CurrentPosition => _currentPosition;
+
         // Constructors
 
         public SourceCode(String sourceCode)
@@ -29,6 +31,8 @@ namespace TinyCompiler
         }
 
         // Methods
+
+        public String GetSlice(Int32 from, Int32 to) => _sourceCode.Substring(from, to - from);
 
         public Char NextChar()
         {

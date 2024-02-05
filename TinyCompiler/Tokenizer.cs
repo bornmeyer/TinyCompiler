@@ -16,28 +16,41 @@ namespace TinyCompiler
                 return tokenType;
             };
 
-            TokenType tokenType = (character, peekAhead) switch
+            (TokenType tokenType, String value) = (character, peekAhead) switch
             {
-                ('+', _) => TokenType.PLUS,
-                ('-', _) => TokenType.MINUS,
-                ('*', _) => TokenType.ASTERISK,
-                ('/', _) => TokenType.SLASH,
-                ('\n', _) => TokenType.NEWLINE,
-                ('\0', _) => TokenType.EOF,
-                ('=', '=') => movOnOperator(TokenType.EQEQ),
-                ('=', _) => TokenType.EQ,
-                ('>', '=') => movOnOperator(TokenType.GTEQ),
-                ('>', _) => TokenType.GT,
-                ('<', '=') => movOnOperator(TokenType.LTEQ),
-                ('<', _) => TokenType.LT,
-                ('!', '=') => movOnOperator(TokenType.NOTEQ),
+                ('+', _) => (TokenType.PLUS, character.ToString()),
+                ('-', _) => (TokenType.MINUS, character.ToString()),
+                ('*', _) => (TokenType.ASTERISK, character.ToString()),
+                ('/', _) => (TokenType.SLASH, character.ToString()),
+                ('\n', _) => (TokenType.NEWLINE, character.ToString()),
+                ('\0', _) => (TokenType.EOF, character.ToString()),
+                ('=', '=') => (movOnOperator(TokenType.EQEQ), character.ToString()),
+                ('=', _) => (TokenType.EQ, character.ToString()),
+                ('>', '=') => (movOnOperator(TokenType.GTEQ), character.ToString()),
+                ('>', _) => (TokenType.GT, character.ToString()),
+                ('<', '=') => (movOnOperator(TokenType.LTEQ), character.ToString()),
+                ('<', _) => (TokenType.LT, character.ToString()),
+                ('!', '=') => (movOnOperator(TokenType.NOTEQ), character.ToString()),
                 ('!', _) => throw new ArgumentException(),
+                ('\"', _) => (TokenType.STRING, ReadString(sourceCode)),
                 _ => throw new ArgumentException()
             }; 
            
-            return (new Token(character.ToString(), tokenType), sourceCode);
+            return (new Token(value, tokenType), sourceCode);
         }
 
-        
+        private String ReadString(SourceCode sourceCode)
+        {
+            sourceCode.NextChar();
+            var startingposition = sourceCode.CurrentPosition;
+            var illegalCharacters = new Char[] { '\r', '\n', '\t', '\\', '%' };
+
+            while (sourceCode.CurrentChar != '\"')
+            {
+                if(illegalCharacters.Contains(sourceCode.CurrentChar)) throw new ArgumentException("character not allowed");
+                sourceCode.NextChar();
+            }
+            return sourceCode.GetSlice(startingposition, sourceCode.CurrentPosition);
+        }
     }
 }

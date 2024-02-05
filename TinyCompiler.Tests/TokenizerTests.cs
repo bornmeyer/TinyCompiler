@@ -73,5 +73,42 @@ namespace TinyCompiler.Tests
 
             Assert.Equal(expected, tokens.Select(x => x.TokenType).ToList());
         }
+
+        [Fact]
+        public void TestThatYouCanTokenizeStrings()
+        {
+            // Assign
+
+            var code = "+- \"This is a string\" # This is a comment!\n */";
+            var sourceCode = new SourceCode(code);
+
+            var systemUnderTest = new Tokenizer();
+
+            var expected = new List<TokenType>
+            {
+                TokenType.PLUS,
+                TokenType.MINUS,
+                TokenType.STRING,
+                TokenType.NEWLINE,
+                TokenType.ASTERISK,
+                TokenType.SLASH,
+                TokenType.NEWLINE,
+                TokenType.EOF
+            };
+
+            var tokens = new List<IToken>();
+
+            IToken? token = null;
+            (token, _) = systemUnderTest.TokenFor(sourceCode.CurrentChar, sourceCode.Peek(), sourceCode);
+            while (token.TokenType != TokenType.EOF)
+            {
+                sourceCode.SkipWhitespace().SkipComment();
+                (token, _) = systemUnderTest.TokenFor(sourceCode.CurrentChar, sourceCode.Peek(), sourceCode);
+                sourceCode.NextChar();
+                tokens.Add(token);
+            }
+
+            Assert.Equal(expected, tokens.Select(x => x.TokenType).ToList());
+        }
     }
 }
