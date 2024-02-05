@@ -33,6 +33,7 @@ namespace TinyCompiler
                 ('!', '=') => (movOnOperator(TokenType.NOTEQ), character.ToString()),
                 ('!', _) => throw new ArgumentException(),
                 ('\"', _) => (TokenType.STRING, ReadString(sourceCode)),
+                (Char c, _) when Char.IsDigit(c) => (TokenType.NUMBER, ReadNumber(sourceCode)),
                 _ => throw new ArgumentException()
             }; 
            
@@ -51,6 +52,21 @@ namespace TinyCompiler
                 sourceCode.NextChar();
             }
             return sourceCode.GetSlice(startingposition, sourceCode.CurrentPosition);
+        }
+
+        private String ReadNumber(SourceCode sourceCode)
+        {
+            var startingposition = sourceCode.CurrentPosition;
+            while (Char.IsDigit(sourceCode.Peek())) { sourceCode.NextChar(); }
+            if (sourceCode.Peek() == '.')
+            {
+                sourceCode.NextChar();
+                if(!Char.IsDigit(sourceCode.Peek())) throw new Exception("Illegal character in number");
+                while (Char.IsDigit(sourceCode.Peek())) sourceCode.NextChar();
+            }
+
+            return sourceCode.GetSlice(startingposition, sourceCode.CurrentPosition + 1);
+
         }
     }
 }
