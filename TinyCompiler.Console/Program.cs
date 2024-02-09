@@ -34,8 +34,9 @@ internal class Program
         
         var sourceCode = new SourceCode(code.Replace(Environment.NewLine, "\n"));
         var lexer = new Lexer(sourceCode, new Tokenizer());
-        var parser = new Parser(lexer);
-        parser.StepParsed += message => Console.WriteLine(message); 
+        var emitter = new CLangEmitter();
+        emitter.CompilationCompleted += code => Console.WriteLine(code);
+        var parser = new Parser(lexer, emitter);        
         parser.Parse();
         Console.ReadLine();
     }

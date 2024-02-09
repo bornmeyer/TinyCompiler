@@ -15,6 +15,7 @@ namespace TinyCompiler
         // Fields
 
         private readonly ILexer _lexer;
+        private readonly IEmitter _emitter;
         private IToken? _currentToken;
         private IToken? _peekToken;
         private List<String> _symbols;
@@ -23,9 +24,10 @@ namespace TinyCompiler
 
         // Constructors
 
-        public Parser(ILexer lexer)
+        public Parser(ILexer lexer, IEmitter emitter)
         {
             this._lexer = lexer;
+            this._emitter = emitter;
             this._currentToken = null;
             this._peekToken = null;
             _symbols = [];
@@ -59,6 +61,8 @@ namespace TinyCompiler
         public void Parse()
         {
             OnStepParsed("Parse started");
+            _emitter.HeaderLine("#include <stdio.h>");
+            _emitter.HeaderLine("int main(void){");
 
             while (CheckToken(TokenType.NEWLINE))
             {
@@ -70,6 +74,10 @@ namespace TinyCompiler
                 Statement();
             }
 
+            _emitter.EmitLine("return 0;");
+            _emitter.EmitLine("}");
+
+            _emitter.OnCompilationCompleted();
             if (!_labelsDeclared.All(x => _labelsJumpedTo.Contains(x))) throw new Exception($"labels and gotos dont match");
         }
 
