@@ -17,6 +17,9 @@ namespace TinyCompiler
         private readonly ILexer _lexer;
         private IToken? _currentToken;
         private IToken? _peekToken;
+        private List<String> _symbols;
+        private List<String> _labelsDeclared;
+        private List<String> _labelsJumpedTo;
 
         // Constructors
 
@@ -25,6 +28,9 @@ namespace TinyCompiler
             this._lexer = lexer;
             this._currentToken = null;
             this._peekToken = null;
+            _symbols = [];
+            _labelsDeclared = [];
+            _labelsJumpedTo = [];
             NextToken();
             NextToken();
         }
@@ -63,21 +69,24 @@ namespace TinyCompiler
             {
                 Statement();
             }
+
+            if (!_labelsDeclared.All(x => _labelsJumpedTo.Contains(x))) throw new Exception($"labels and gotos dont match");
         }
 
         public void Statement()
         {
-            IEnumerable<Action> actions = (_currentToken?.TokenType) switch
+            Action action = (_currentToken?.TokenType) switch
             {
-                TokenType.PRINT => [Print, NewLine],
-                TokenType.IF => [If, NewLine],
-                TokenType.REPEAT => [Repeat, NewLine],
-                TokenType.LABEL => [Label, NewLine],
-                TokenType.INPUT => [Input, NewLine],
-                TokenType.GOTO => [GoTo,  NewLine],
-                TokenType.LET => [Let, NewLine],             
+                TokenType.PRINT => Print,
+                TokenType.IF => If,
+                TokenType.WHILE => Repeat,
+                TokenType.LABEL => Label,
+                TokenType.INPUT => Input,
+                TokenType.GOTO => GoTo,
+                TokenType.LET => Let,             
             };
-            foreach (var action in actions) action();
+            action();
+            NewLine();
         }
 
         private void Print()
@@ -116,6 +125,9 @@ namespace TinyCompiler
         {
             OnStepParsed("STATEMENT-LABEL");
             NextToken();
+            if (_labelsDeclared.Contains(_currentToken?.Text ?? throw new Exception()))
+                throw new Exception($"label \"{_currentToken.Text}\" already exists");
+            _labelsDeclared.Add(_currentToken.Text);
             Match(TokenType.IDENT);
         }
 
@@ -123,6 +135,7 @@ namespace TinyCompiler
         {
             OnStepParsed("STATEMENT-GOTO");
             NextToken();
+            _labelsJumpedTo.Add(_currentToken?.Text ?? throw new Exception());
             Match(TokenType.IDENT);
         }
 
@@ -130,6 +143,9 @@ namespace TinyCompiler
         {
             OnStepParsed("STATEMENT-LET");
             NextToken();
+            if(!_symbols.Contains(_currentToken?.Text ?? throw new Exception()))
+                _symbols.Add(_currentToken.Text);
+
             Match(TokenType.IDENT);
             Match(TokenType.EQ);
             Expression();
@@ -139,6 +155,8 @@ namespace TinyCompiler
         {
             OnStepParsed("STATEMENT-INPUT");
             NextToken();
+            if (!_symbols.Contains(_currentToken?.Text ?? throw new Exception()))
+                _symbols.Add(_currentToken.Text);
             Match(TokenType.IDENT);
         }
 
@@ -186,8 +204,18 @@ namespace TinyCompiler
         {
             OnStepParsed($"PRIMARY ({_currentToken?.Text})");
 
-            if(!CheckToken(TokenType.NUMBER) && !CheckToken(TokenType.IDENT)) throw new Exception();
-            NextToken();
+            switch (_currentToken?.TokenType)
+            {
+                case TokenType.NUMBER:
+                    NextToken();
+                    break;
+                case TokenType.IDENT:
+                    if (!_symbols.Contains(_currentToken.Text)) throw new Exception($"Referencing variable {_currentToken.Text} before assignment");
+                    NextToken();
+                    break;
+                default:
+                    throw new Exception();
+            }            
         }
 
         public void Term()

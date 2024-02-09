@@ -16,9 +16,23 @@ internal class Program
         //GOTO loop
         //";
 
-        var code = @"LET foo = bar * 3 + 2";
+        var code = @"
+        PRINT ""How many fibonacci numbers do you want?""
+        INPUT nums
+        PRINT """"
 
-        var sourceCode = new SourceCode(code);
+        LET a = 0
+        LET b = 1
+        WHILE nums > 0 REPEAT
+            PRINT a
+            LET c = a + b
+            LET a = b
+            LET b = c
+            LET nums = nums - 1
+        ENDWHILE
+        ";
+        
+        var sourceCode = new SourceCode(code.Replace(Environment.NewLine, "\n"));
         var lexer = new Lexer(sourceCode, new Tokenizer());
         var parser = new Parser(lexer);
         parser.StepParsed += message => Console.WriteLine(message); 
